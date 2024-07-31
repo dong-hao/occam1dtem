@@ -2,10 +2,9 @@
 Toy Occam inversion code for 1D TEM (central loop) method in Matlab
 ## DATA
 The example data are from the forward modelling of a synthetic model (examples/true.mod)
-The forward modelling algorithm is from Christensen, 2002. 
+The forward modelling algorithm is an approximate method called ABFM (Adaptive Born Forward Mapping) from Christensen, 2002:
 
-Christensen N. B. (2002). A generic 1-D imaging method for transient electromagnetic data. Geophysics, 67(2), 438–447. 
-
+Christensen N. B. (2002). A generic 1-D imaging method for transient electromagnetic data. Geophysics, 67(2), 438–447. doi:10.1190/1.1468603
 see also my toy occam code for magnetotellurics:
 
 [https://github.com/dong-hao/occam1dmt]

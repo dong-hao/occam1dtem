@@ -6,9 +6,9 @@ The forward modelling algorithm is from Christensen, 2002.
 
 Christensen N. B. (2002). A generic 1-D imaging method for transient electromagnetic data. Geophysics, 67(2), 438–447. 
 
-see also my toy occam code for DC resistivity:
+see also my toy occam code for magnetotellurics:
 
-[https://github.com/dong-hao/occam1ddc]
+[https://github.com/dong-hao/occam1dmt]
 
 ## USAGE
 See example/testbench.m for a simple demonstration on how to load the data and call the inversion code. 

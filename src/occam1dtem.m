@@ -45,7 +45,7 @@ elseif nargin < 9
 end
 % setup some params
 M=length(sigma0);
-lambda=10;
+lambda=100;
 dlambda=10;
 % initial sigma
 sigma = sigma0;

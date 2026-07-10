@@ -68,13 +68,12 @@ while (relres > 1e-6 && k < 30) % hard coded here...
         end
     end
     app_sigma1 = sigma.*F';
-    sigma_a  = sum(app_sigma1,1);
     av_sigma_old  = sigma_a;
-    sigma_a   = alpha * sigma_a + (1 - alpha) * sigma_a;
+    sigma_a   = sum(app_sigma1,1)';
+    sigma_a   = alpha * sigma_a + (1 - alpha) * av_sigma_old;
     relres = norm(av_sigma_old - sigma_a)./norm(av_sigma_old);
     k = k + 1;
 end
-sigma_a = sigma_a';
 if nargout > 1
     theta = sqrt((mu0 * sigma_a)./(4*t));
     % Faraday's Law dB/dt = -mu*(dH/dt)

@@ -18,8 +18,10 @@ sigma_a0 = tem1dfwd10(sigma, z, time, A, I);
 for i = 1:NL % m forward modellings 
     psigma = sigma;
     psigma(i) = (1 + pert) * sigma(i);
-    sigma_a = tem1dfwd10(psigma, z, time, A, I);
-    psigma_a = sigma_a - sigma_a0;
+    sigma_ap = tem1dfwd10(psigma, z, time, A, I);
+    psigma_a = sigma_ap - sigma_a0;
     % dsigma_a/dsigma
     J(:, i) = psigma_a / (pert * sigma(i));
 end
+sigma_a = sigma_a0;
+return

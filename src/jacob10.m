@@ -1,4 +1,4 @@
-function [J, sigma_a] = jacob10(sigma, z, time, A, I)
+function [J, sigma_a] = jacob10(sigma, z, time, D, I)
 % Analytical Jacobian for 1D TEM central loop (ABFM forward model)
 % used for occam 1D TEM inversion
 % Uses implicit differentiation of the ABFM fixed point

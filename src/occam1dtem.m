@@ -1,8 +1,8 @@
-function [sigma,sigma_a,dBdt]=occam1dtem(sigma0, z, t, sigma_a0, sigma_e0,...
-    A, I, Trms, Niter)
+function [sigma,sigma_a,out3]=occam1dtem(sigma0, z, t, sigma_a0, sigma_e0,...
+    D, I, Trms, Niter, config)
 % main function of occam inversion
-% for 1D TEM in a central loop set-up, note this inverts the apparent
-% conductivity, instead of the H or dBdt
+% for 1D TEM in a central loop or coincident loop set-up
+% note this inverts the apparent conductivity, instead of the H or dBdt
 % in log10 space, i.e. both sigma and sigma_a are in log10 space
 % DONG Hao
 % 2010/01/07
@@ -26,10 +26,13 @@ function [sigma,sigma_a,dBdt]=occam1dtem(sigma0, z, t, sigma_a0, sigma_e0,...
 % a_sigma0: array of input data apparent conductivity
 %           in log10 space
 % e_sigma0: array of input data apparent conductivity (absolute) error 
-% A:        (equivalent) loop area of the magnetic dipole source
+% D:        central-loop mode: transmitter loop DIAMETER (m)
+%           coincident-loop mode: loop side length (m)
 % I:        electrical current of the source
 % Trms:     target Root Mean Square misfit for iteration
 % Niter:    maximum number of iteration
+% config:   0 or 'central' (default): central loop, out3 = dB/dt
+%           1 or 'coincident'       : coincident loop, out3 = V/I
 %=========================================================================%
 % other parametsigma that might be useful:
 %
@@ -42,6 +45,16 @@ if nargin < 8
     Niter = 20;
 elseif nargin < 9
     Niter = 20;
+end
+if nargin < 10
+    config = 0;
+end
+if ischar(config)
+    if strcmpi(config, 'coincident')
+        config = 1;
+    else
+        config = 0;
+    end
 end
 % setup some params
 M=length(sigma0);
@@ -58,7 +71,7 @@ for iter=1:Niter
     lambdar=lambda*dlambda; % lambda on the right
     lambdal=lambda/dlambda; % lambda on the left
     % first get the Jacobian and the 
-    [J,sigma_a]=jacob10(sigma,z,t,A,I);
+    [J,sigma_a]=jacob10(sigma,z,t,D,I);
     imrms=rms1(sigma_a,sigma_a0,sigma_e0);     % starting rms
     fprintf('! previous RMS = %5.3f \n', imrms);
     dsigma=sigma_a0-sigma_a;
@@ -66,9 +79,9 @@ for iter=1:Niter
     sigmam=occam(dsigma,sigma_e0,sigma,lambda, J); % conductivity in the middle
     sigmar=occam(dsigma,sigma_e0,sigma,lambdar,J); % conductivity on the right
     sigmal=occam(dsigma,sigma_e0,sigma,lambdal,J); % conductivity on the left
-    sigma_am = tem1dfwd10(sigmam, z, t, A, I);
-    sigma_ar = tem1dfwd10(sigmar, z, t, A, I);
-    sigma_al = tem1dfwd10(sigmal, z, t, A, I);
+    sigma_am = tem1dfwd10(sigmam, z, t, D, I, config);
+    sigma_ar = tem1dfwd10(sigmar, z, t, D, I, config);
+    sigma_al = tem1dfwd10(sigmal, z, t, D, I, config);
     [ChiSl,ChiSm,ChiSr]=dispfit(sigma_a0, sigma_am, sigma_al, ...
         sigma_ar,sigma_e0, sigmal ,sigmam, sigmar, lambdal ,lambda, lambdar);  
     for ifind=1:10
@@ -107,9 +120,9 @@ for iter=1:Niter
             disp('=========cannot find a local minimum===========')
             break
         end
-        sigma_am = tem1dfwd10(sigmam,z,t,A,I);
-        sigma_al = tem1dfwd10(sigmal,z,t,A,I);
-        sigma_ar = tem1dfwd10(sigmar,z,t,A,I);
+        sigma_am = tem1dfwd10(sigmam,z,t,D,I,config);
+        sigma_al = tem1dfwd10(sigmal,z,t,D,I,config);
+        sigma_ar = tem1dfwd10(sigmar,z,t,D,I,config);
         [ChiSl,ChiSm,ChiSr]=dispfit(sigma_a0, sigma_am, sigma_al, ...
         sigma_ar,sigma_e0, sigmal ,sigmam, sigmar, lambdal ,lambda, lambdar);   
     end
@@ -138,7 +151,7 @@ for iter=1:Niter
             disp('================>> searching >>================')
             lambda=lambda*sqrt(dlambda);
             sigmar=occam(dsigma,sigma_e0,sigma,lambda,J);
-            sigma_ar = tem1dfwd10(sigmar,z,t,A,I);
+            sigma_ar = tem1dfwd10(sigmar,z,t,D,I,config);
             rmsr=rms1(sigma_a0,sigma_ar,sigma_e0);
             fprintf('! evaluating a smoother model with Lambda = %5.3f \n', lambda);
             fprintf('! current RMS = %5.3f \n', rmsr);
@@ -166,8 +179,8 @@ else
     sigma_a = sigma_am;
 end
 if nargout > 2 
-    % exciplitly output a dBdt value
-    [sigma_a, dBdt] = tem1dfwd10(sigma, z, t, A, I);
+    % exciplitly output a dBdt or V/I value
+    [sigma_a, out3] = tem1dfwd10(sigma, z, t, D, I, config);
 end
 frms=rms1(sigma_a,sigma_a0,sigma_e0);  
 ChiS=chi2(sigma_a,sigma_a0,sigma_e0);

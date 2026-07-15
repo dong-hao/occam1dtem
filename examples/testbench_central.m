@@ -1,4 +1,5 @@
 % simple testbench script, for 1D TEM (transient EM) occam inversion
+% for central loop setup
 % DONG Hao
 % 2010/01/07
 % Yuxian, Hebei
@@ -7,11 +8,11 @@ clear
 addpath(genpath('..'),'-end');
 % some settings here
 % terminating RMS misfit
-Trms=1.2;
+Trms=1.5;
 % number of maximum iteration
 Niter=20; 
-% equivalent loop area
-A = 100;
+% loop diameter (D=200 --> radius=100m, matching the original central-loop data)
+D = 200;
 % current 
 I = 6;
 % read a 19-layered model file
@@ -32,7 +33,7 @@ asigma = tmp{2};
 esigma = tmp{3}; 
 dBdt_obs = tmp{4};
 % do the inversion
-[sigmai,asigmai,dBdt_res]=occam1dtem(sigma0, z, time, asigma, esigma, A, I, Trms, Niter);
+[sigmai,asigmai,dBdt_res]=occam1dtem(sigma0, z, time, asigma, esigma, D, I, Trms, Niter);
 layers = diff(z);
 % now try to read the true model 
 fid = fopen('true.mod');

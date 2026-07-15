@@ -1,6 +1,6 @@
-function [sigma_a, dBdt] = tem1dfwd10(sigma, z, t, A, I)
+function [sigma_a, out2] = tem1dfwd10(sigma, z, t, D, I, config)
 % a barn door 1d layered forward routine for 
-% TEM 1D inversion in a central loop set-up
+% TEM 1D inversion
 % in log10 space, i.e. both sigma and sigma_a are in log10 space
 % 
 % DONG Hao
@@ -11,9 +11,11 @@ function [sigma_a, dBdt] = tem1dfwd10(sigma, z, t, A, I)
 % z     -> layer interface depth z(0) = 0 for ground-based cases 
 %           (nlayer by 1 array)
 % t     -> time step
-% A     -> (equivalent) loop area of the magnetic source
+% D     -> central-loop mode: transmitter loop DIAMETER (m)
+%          coincident-loop mode: loop side length (m)
 % I     -> electrical current of the source
-% dBdt  -> magnetic field change rate
+% config-> 0 or 'central'   (default): central loop, out2 = dB/dt
+%          1 or 'coincident'        : coincident loop, out2 = V/I
 
 % See: Christensen, N. B. A Generic 1-D Imaging Method for Transient
 % Electromagnetic Data. Geophysics. 2002. 67, 438-447.
@@ -21,6 +23,17 @@ function [sigma_a, dBdt] = tem1dfwd10(sigma, z, t, A, I)
 % response with a series of half-space responses
 
 % check data consistency
+if nargin < 6
+    config = 0; % default to central loop
+end
+if ischar(config)
+    if strcmpi(config, 'coincident')
+        config = 1;
+    else
+        config = 0;
+    end
+end
+
 if size(sigma,1) ~= size(z,1)
     error('inconsistence size of resistivity and layer number...')
 else
@@ -74,15 +87,18 @@ while (relres > 1e-6 && k < 30) % hard coded here...
     relres = norm(av_sigma_old - sigma_a)./norm(av_sigma_old);
     k = k + 1;
 end
+
 if nargout > 1
-    theta = sqrt((mu0 * sigma_a)./(4*t));
-    % Faraday's Law dB/dt = -mu*(dH/dt)
-    p = (I./(sigma_a * (A^3)));
-    q = 3 * erf(theta * A);
-    r = (2/sqrt(pi)).* theta .* A .* (3 + 2 .* ((theta * A).^2));
-    s = exp(-((theta * A).^2));
-    dBdt = p .* (q - r .* s);
+    if config == 0
+        % central loop: compute dB/dt from half-space formula
+        out2 = sigma2dBdt(sigma_a, D, I, t);
+    else
+        % coincident loop: compute V/I from half-space formula
+        % D is the loop side length (Raiche & Spies, 1981)
+        out2 = sigma2VoI(sigma_a, D, t);
+    end
 end
 % convert back to log10 space
 sigma_a = log10(sigma_a);
 return
+
